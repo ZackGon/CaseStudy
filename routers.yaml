@@ -1,0 +1,142 @@
+--- #Admin Router
+- name: BACKUP OF RUNNING-CONFIG OF 
+  hosts: admin
+  gather_facts: false
+
+  vars:
+    cli:
+      username: cisco
+      password: cisco123!
+      timeout: 100
+      auth_pass: cisco123!
+ 
+  tasks:
+   - name: APPLYING OSPF TO ADMIN
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - router-id 0.0.0.1
+         - passive-interface f0/0
+         - network 10.0.1.0 0.0.0.3 area 0
+         - network 10.0.1.4 0.0.0.3 area 0
+         - network 192.16.1.0 0.0.0.3 area 0
+         - default-information originate     
+       parents: router ospf 1
+
+   - name: DISPLAYING THE RUNNING-CONFIG
+     ios_command:
+       provider: "{{ cli }}"
+       authorize: yes
+       commands:
+         - show run
+     register: config
+
+   - name: SAVE OUTPUT TO ./backups/
+     copy:
+       content: "{{ config.stdout[0] }}"
+       dest: "backups/show_run_{{ inventory_hostname }}.txt"
+
+- name: AUTOMATIC BACKUP OF RUNNING-CONFIG OFFICE 1 #Office1 Router
+  hosts: office1
+  gather_facts: false
+
+  vars:
+    cli:
+      username: cisco
+      password: cisco123!
+      timeout: 100
+      auth_pass: cisco123!
+ 
+  tasks:
+   - name: APPLYING OSPF TO OFFICE1
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - router-id 0.0.0.2
+         - passive-interface f0/0
+         - network 10.0.1.0 0.0.0.3 area 0
+         - network 10.0.1.8 0.0.0.3 area 0
+         - network 192.16.1.4 0.0.0.3 area 0
+       parents: router ospf 1
+
+   - name: PERMIT OFFICE1 AND OFFICE2
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - access-list 1 permit 192.16.1.4 0.0.0.3
+         - access-list 2 permit 192.16.1.8 0.0.0.3
+
+   - name: APPLYING PAT TO OFFICE1
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - ip nat pool Office_1 209.165.200.232 209.165.200.233 netmask 255.255.255.252
+         - ip nat pool Office_2 209.165.202.129 209.165.202.130 netmask 255.255.255.252
+         - ip nat inside source list 1 pool Office_1 overload
+         - ip nat inside source list 2 pool Office_2 overload
+
+   - name: DISPLAYING THE RUNNING-CONFIG
+     ios_command:
+       provider: "{{ cli }}"
+       authorize: yes
+       commands:
+         - show run
+     register: config
+
+   - name: SAVE OUTPUT TO ./backups/
+     copy:
+       content: "{{ config.stdout[0] }}"
+       dest: "backups/show_run_{{ inventory_hostname }}.txt"
+
+- name: AUTOMATIC BACKUP OF RUNNING-CONFIG OFFICE 2 #Office2 Router
+  hosts: office2
+  gather_facts: false
+
+  vars:
+    cli:
+      username: cisco
+      password: cisco123!
+      timeout: 100
+      auth_pass: cisco123!
+ 
+  tasks:
+   - name: APPLYING OSPF TO OFFICE2
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - router-id 0.0.0.3
+         - passive-interface f0/0
+         - passive-interface f0/1
+         - network 10.0.1.4 0.0.0.3 area 0
+         - network 10.0.1.8 0.0.0.3 area 0
+         - network 192.16.1.12 0.0.0.3 area 0
+         - network 192.16.1.8 0.0.0.3 area 0
+       parents: router ospf 1
+
+   - name: APPLYING ACL TO OFFICE2
+     ios_config:
+       provider: "{{ cli }}"
+       authorize: yes
+       lines: 
+         - access-list 1 deny 192.16.1.12 0.0.0.3
+         - access-list 1 permit any
+         - int f0/0
+         - ip access-group 1 out
+
+   - name: DISPLAYING THE RUNNING-CONFIG
+     ios_command:
+       provider: "{{ cli }}"
+       authorize: yes
+       commands:
+         - show run
+     register: config
+
+   - name: SAVE OUTPUT TO ./backups/
+     copy:
+       content: "{{ config.stdout[0] }}"
+       dest: "backups/show_run_{{ inventory_hostname }}.txt"

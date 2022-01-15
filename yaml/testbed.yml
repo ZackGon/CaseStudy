@@ -1,0 +1,40 @@
+devices:
+  admin:
+    connections:
+      cli:
+        ip: 192.16.1.1
+        protocol: ssh
+    credentials:
+      default:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+        username: cisco
+      enable:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+    os: ios
+    type: ios
+  office1:
+    connections:
+      cli:
+        ip: 10.0.1.2
+        protocol: ssh
+    credentials:
+      default:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+        username: cisco
+      enable:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+    os: ios
+    type: ios
+  office2:
+    connections:
+      cli:
+        ip: 10.0.1.6
+        protocol: ssh
+    credentials:
+      default:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+        username: cisco
+      enable:
+        password: '%ENC{w5PDosOUw5fDosKQwpbCmMKH}'
+    os: ios
+    type: ios
